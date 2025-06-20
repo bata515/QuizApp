@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data  # データ永続化
+    ports:
+      - "5432:5432"  # ローカル→コンテナのポートマッピング
+
+  backend:
+    build: ./backend  # backendディレクトリのDockerfileからビルド
+    env_file: .env # 環境変数ファイルを読み込む
+    ports:
+      - "8080:8080"  # Spring Bootアプリを公開
+    depends_on:
+      - db  # dbが起動してからbackendを起動
+    environment:
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+
+volumes:
+  db-data:  # 名前付きボリュームでDBデータを永続化
