@@ -25,4 +25,4 @@ docker-compose up --build
 # コンテナを停止削除する。バックグラウンド起動時でも止められる
 docker-compose down
 ```
-もしくは、ctrl + Cで停止できます。
+もしくは、ctrl + Cで停止できます(フォアグラウンド実行のみ停止可能)。
