@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者ダッシュボード - QuizApp</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .admin-sidebar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .stat-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-icon {
+            font-size: 3rem;
+            opacity: 0.8;
+        }
+        .nav-link {
+            color: rgba(255,255,255,0.8);
+            border-radius: 10px;
+            margin: 5px 0;
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+        }
+        .category-card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- サイドバー -->
+            <nav class="col-md-3 col-lg-2 d-md-block admin-sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <div class="text-center text-white mb-4">
+                        <i class="fas fa-user-shield fa-3x mb-2"></i>
+                        <h5>管理者パネル</h5>
+                        <p class="mb-0" sec:authentication="name">admin</p>
+                    </div>
+                    
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="/admin/dashboard">
+                                <i class="fas fa-tachometer-alt me-2"></i>ダッシュボード
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/categories">
+                                <i class="fas fa-folder me-2"></i>カテゴリー管理
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/admin/quizzes">
+                                <i class="fas fa-question-circle me-2"></i>クイズ管理
+                            </a>
+                        </li>
+                        <li class="nav-item mt-3">
+                            <a class="nav-link" href="/" target="_blank">
+                                <i class="fas fa-external-link-alt me-2"></i>サイトを表示
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <form th:action="@{/admin/logout}" method="post" class="d-inline w-100">
+                                <button type="submit" class="nav-link btn btn-link text-start w-100 border-0">
+                                    <i class="fas fa-sign-out-alt me-2"></i>ログアウト
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <!-- メインコンテンツ -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="fas fa-tachometer-alt me-2"></i>ダッシュボード
+                    </h1>
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="btn-group me-2">
+                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                <i class="fas fa-download me-1"></i>エクスポート
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- フラッシュメッセージ -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+                
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-circle me-2"></i>
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <!-- 統計カード -->
+                <div class="row mb-4">
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-primary h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                            カテゴリー数
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${categoryCount}">4</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-folder stat-icon text-primary"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-success h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                            クイズ数
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${quizCount}">12</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-question-circle stat-icon text-success"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-info h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            今日の挑戦者
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">-</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-users stat-icon text-info"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card stat-card border-left-warning h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                            平均正答率
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">-</div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-chart-line stat-icon text-warning"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- クイックアクション -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-plus-circle me-2"></i>クイックアクション
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <a href="/admin/categories/new" class="btn btn-primary">
+                                        <i class="fas fa-folder-plus me-2"></i>新しいカテゴリーを作成
+                                    </a>
+                                    <a href="/admin/quizzes/new" class="btn btn-success">
+                                        <i class="fas fa-plus me-2"></i>新しいクイズを作成
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>システム情報
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p><strong>バージョン:</strong> 1.0.0</p>
+                                <p><strong>データベース:</strong> PostgreSQL</p>
+                                <p><strong>最終更新:</strong> 2024年12月</p>
+                                <p class="mb-0"><strong>ステータス:</strong> <span class="badge bg-success">正常</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- カテゴリー一覧 -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-folder me-2"></i>カテゴリー一覧
+                        </h5>
+                        <a href="/admin/categories" class="btn btn-sm btn-outline-primary">
+                            すべて表示
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div th:if="${categories != null and !categories.empty}">
+                            <div class="row">
+                                <div class="col-md-6 col-lg-4 mb-3" th:each="category : ${categories}">
+                                    <div class="card category-card">
+                                        <div class="card-body">
+                                            <h6 class="card-title" th:text="${category.name}">カテゴリー名</h6>
+                                            <p class="card-text text-muted small" th:text="${category.description}">説明</p>
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <small class="text-muted">
+                                                    <span th:text="${category.quizzes != null ? category.quizzes.size() : 0}">0</span> 問
+                                                </small>
+                                                <div class="btn-group btn-group-sm">
+                                                    <a th:href="@{'/admin/categories/' + ${category.id} + '/edit'}" 
+                                                       class="btn btn-outline-primary btn-sm">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    <a th:href="@{'/admin/quizzes?categoryId=' + ${category.id}}" 
+                                                       class="btn btn-outline-success btn-sm">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div th:if="${categories == null or categories.empty}" class="text-center py-4">
+                            <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">まだカテゴリーがありません</p>
+                            <a href="/admin/categories/new" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i>最初のカテゴリーを作成
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
