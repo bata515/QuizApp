@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理者ページ - クイズアプリ</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .login-form {
+            max-width: 400px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="password"], textarea, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn-success {
+            background-color: #28a745;
+        }
+        .btn-success:hover {
+            background-color: #218838;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+        }
+        .btn-danger:hover {
+            background-color: #c82333;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #dee2e6;
+            margin-bottom: 30px;
+        }
+        .tab {
+            padding: 15px 30px;
+            background-color: #f8f9fa;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+            margin-right: 5px;
+        }
+        .tab.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .table th, .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .table tr:hover {
+            background-color: #f8f9fa;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .choice-input {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .choice-input input[type="text"] {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .choice-input input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .add-choice-btn {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .remove-choice-btn {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .home-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .home-link:hover {
+            text-decoration: underline;
+        }
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 120px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <!-- ログイン画面 -->
+    <div id="loginContainer" class="login-form">
+        <h2>管理者ログイン</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">ユーザー名:</label>
+                <input type="text" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="password">パスワード:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn">ログイン</button>
+        </form>
+    </div>
+
+    <!-- 管理画面 -->
+    <div id="adminContainer" class="container" style="display: none;">
+        <a href="/" class="home-link">ホームページ</a>
+        <button class="logout-btn" onclick="logout()">ログアウト</button>
+        
+        <h1>クイズ管理システム</h1>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('categories')">カテゴリー管理</button>
+            <button class="tab" onclick="showTab('quizzes')">クイズ管理</button>
+        </div>
+
+        <!-- カテゴリー管理タブ -->
+        <div id="categoriesTab" class="tab-content active">
+            <h2>カテゴリー管理</h2>
+            <button class="btn btn-success" onclick="showCategoryModal()">新しいカテゴリーを追加</button>
+            
+            <table class="table" id="categoriesTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>カテゴリー名</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- カテゴリー一覧がここに表示されます -->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- クイズ管理タブ -->
+        <div id="quizzesTab" class="tab-content">
+            <h2>クイズ管理</h2>
+            <button class="btn btn-success" onclick="showQuizModal()">新しいクイズを追加</button>
+            
+            <table class="table" id="quizzesTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>問題</th>
+                        <th>カテゴリー</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- クイズ一覧がここに表示されます -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- カテゴリーモーダル -->
+    <div id="categoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCategoryModal()">&times;</span>
+            <h2 id="categoryModalTitle">カテゴリーを追加</h2>
+            <form id="categoryForm">
+                <div class="form-group">
+                    <label for="categoryName">カテゴリー名:</label>
+                    <input type="text" id="categoryName" name="categoryName" required>
+                </div>
+                <button type="submit" class="btn btn-success">保存</button>
+                <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">キャンセル</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- クイズモーダル -->
+    <div id="quizModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeQuizModal()">&times;</span>
+            <h2 id="quizModalTitle">クイズを追加</h2>
+            <form id="quizForm">
+                <div class="form-group">
+                    <label for="quizQuestion">問題:</label>
+                    <textarea id="quizQuestion" name="quizQuestion" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="quizExplanation">解説:</label>
+                    <textarea id="quizExplanation" name="quizExplanation"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="quizCategory">カテゴリー:</label>
+                    <select id="quizCategory" name="quizCategory" required>
+                        <!-- カテゴリーオプションがここに表示されます -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>選択肢:</label>
+                    <div id="choicesContainer">
+                        <!-- 選択肢入力フィールドがここに表示されます -->
+                    </div>
+                    <button type="button" class="add-choice-btn" onclick="addChoice()">選択肢を追加</button>
+                </div>
+                <button type="submit" class="btn btn-success">保存</button>
+                <button type="button" class="btn btn-secondary" onclick="closeQuizModal()">キャンセル</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let authToken = null;
+        let currentEditingCategoryId = null;
+        let currentEditingQuizId = null;
+        let categories = [];
+
+        // ページ読み込み時の処理
+        document.addEventListener('DOMContentLoaded', function() {
+            // ローカルストレージからトークンを取得
+            authToken = localStorage.getItem('adminToken');
+            if (authToken) {
+                showAdminPanel();
+            }
+
+            // ログインフォームの処理
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            document.getElementById('categoryForm').addEventListener('submit', handleCategorySubmit);
+            document.getElementById('quizForm').addEventListener('submit', handleQuizSubmit);
+        });
+
+        // ログイン処理
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    authToken = data.token;
+                    localStorage.setItem('adminToken', authToken);
+                    showAdminPanel();
+                } else {
+                    alert('ログインに失敗しました');
+                }
+            } catch (error) {
+                console.error('ログインエラー:', error);
+                alert('ログインに失敗しました');
+            }
+        }
+
+        // 管理画面を表示
+        function showAdminPanel() {
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('adminContainer').style.display = 'block';
+            loadCategories();
+            loadQuizzes();
+        }
+
+        // ログアウト
+        function logout() {
+            authToken = null;
+            localStorage.removeItem('adminToken');
+            document.getElementById('adminContainer').style.display = 'none';
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('loginForm').reset();
+        }
+
+        // タブ切り替え
+        function showTab(tabName) {
+            // すべてのタブを非アクティブにする
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            // 選択されたタブをアクティブにする
+            event.target.classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        // カテゴリー一覧を読み込み
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/admin/categories', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    categories = await response.json();
+                    displayCategories();
+                    updateCategorySelect();
+                } else {
+                    console.error('カテゴリーの取得に失敗しました');
+                }
+            } catch (error) {
+                console.error('カテゴリー取得エラー:', error);
+            }
+        }
+
+        // カテゴリー一覧を表示
+        function displayCategories() {
+            const tbody = document.querySelector('#categoriesTable tbody');
+            tbody.innerHTML = '';
+            
+            categories.forEach(category => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${category.id}</td>
+                    <td>${category.name}</td>
+                    <td>
+                        <button class="btn" onclick="editCategory(${category.id})">編集</button>
+                        <button class="btn btn-danger" onclick="deleteCategory(${category.id})">削除</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // カテゴリーセレクトボックスを更新
+        function updateCategorySelect() {
+            const select = document.getElementById('quizCategory');
+            select.innerHTML = '';
+            
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                select.appendChild(option);
+            });
+        }
+
+        // カテゴリーモーダルを表示
+        function showCategoryModal(categoryId = null) {
+            currentEditingCategoryId = categoryId;
+            const modal = document.getElementById('categoryModal');
+            const title = document.getElementById('categoryModalTitle');
+            const nameInput = document.getElementById('categoryName');
+            
+            if (categoryId) {
+                const category = categories.find(c => c.id === categoryId);
+                title.textContent = 'カテゴリーを編集';
+                nameInput.value = category.name;
+            } else {
+                title.textContent = 'カテゴリーを追加';
+                nameInput.value = '';
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        // カテゴリーモーダルを閉じる
+        function closeCategoryModal() {
+            document.getElementById('categoryModal').style.display = 'none';
+            currentEditingCategoryId = null;
+        }
+
+        // カテゴリー編集
+        function editCategory(categoryId) {
+            showCategoryModal(categoryId);
+        }
+
+        // カテゴリー削除
+        async function deleteCategory(categoryId) {
+            if (!confirm('このカテゴリーを削除しますか？')) return;
+            
+            try {
+                const response = await fetch(`/api/admin/categories/${categoryId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    loadCategories();
+                } else {
+                    alert('カテゴリーの削除に失敗しました');
+                }
+            } catch (error) {
+                console.error('カテゴリー削除エラー:', error);
+                alert('カテゴリーの削除に失敗しました');
+            }
+        }
+
+        // カテゴリーフォーム送信
+        async function handleCategorySubmit(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('categoryName').value;
+            const url = currentEditingCategoryId 
+                ? `/api/admin/categories/${currentEditingCategoryId}`
+                : '/api/admin/categories';
+            const method = currentEditingCategoryId ? 'PUT' : 'POST';
+            
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify({ name })
+                });
+                
+                if (response.ok) {
+                    closeCategoryModal();
+                    loadCategories();
+                } else {
+                    alert('カテゴリーの保存に失敗しました');
+                }
+            } catch (error) {
+                console.error('カテゴリー保存エラー:', error);
+                alert('カテゴリーの保存に失敗しました');
+            }
+        }
+
+        // クイズ一覧を読み込み
+        async function loadQuizzes() {
+            try {
+                const response = await fetch('/api/admin/quizzes', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const quizzes = await response.json();
+                    displayQuizzes(quizzes);
+                } else {
+                    console.error('クイズの取得に失敗しました');
+                }
+            } catch (error) {
+                console.error('クイズ取得エラー:', error);
+            }
+        }
+
+        // クイズ一覧を表示
+        function displayQuizzes(quizzes) {
+            const tbody = document.querySelector('#quizzesTable tbody');
+            tbody.innerHTML = '';
+            
+            quizzes.forEach(quiz => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${quiz.id}</td>
+                    <td>${quiz.question.substring(0, 50)}...</td>
+                    <td>${quiz.categoryName}</td>
+                    <td>
+                        <button class="btn" onclick="editQuiz(${quiz.id})">編集</button>
+                        <button class="btn btn-danger" onclick="deleteQuiz(${quiz.id})">削除</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        // クイズモーダルを表示
+        function showQuizModal(quizId = null) {
+            currentEditingQuizId = quizId;
+            const modal = document.getElementById('quizModal');
+            const title = document.getElementById('quizModalTitle');
+            
+            if (quizId) {
+                title.textContent = 'クイズを編集';
+                loadQuizForEdit(quizId);
+            } else {
+                title.textContent = 'クイズを追加';
+                clearQuizForm();
+                initializeChoices();
+            }
+            
+            modal.style.display = 'block';
+        }
+
+        // クイズモーダルを閉じる
+        function closeQuizModal() {
+            document.getElementById('quizModal').style.display = 'none';
+            currentEditingQuizId = null;
+        }
+
+        // クイズフォームをクリア
+        function clearQuizForm() {
+            document.getElementById('quizQuestion').value = '';
+            document.getElementById('quizExplanation').value = '';
+            document.getElementById('quizCategory').value = '';
+        }
+
+        // 選択肢を初期化
+        function initializeChoices() {
+            const container = document.getElementById('choicesContainer');
+            container.innerHTML = '';
+            
+            // 4つの選択肢を追加
+            for (let i = 0; i < 4; i++) {
+                addChoice();
+            }
+        }
+
+        // 選択肢を追加
+        function addChoice(text = '', isCorrect = false) {
+            const container = document.getElementById('choicesContainer');
+            const choiceDiv = document.createElement('div');
+            choiceDiv.className = 'choice-input';
+            
+            choiceDiv.innerHTML = `
+                <input type="checkbox" ${isCorrect ? 'checked' : ''}>
+                <input type="text" placeholder="選択肢を入力" value="${text}">
+                <button type="button" class="remove-choice-btn" onclick="removeChoice(this)">削除</button>
+            `;
+            
+            container.appendChild(choiceDiv);
+        }
+
+        // 選択肢を削除
+        function removeChoice(button) {
+            button.parentElement.remove();
+        }
+
+        // クイズ編集用にデータを読み込み
+        async function loadQuizForEdit(quizId) {
+            try {
+                const response = await fetch(`/api/admin/quizzes/${quizId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const quiz = await response.json();
+                    document.getElementById('quizQuestion').value = quiz.question;
+                    document.getElementById('quizExplanation').value = quiz.explanation || '';
+                    document.getElementById('quizCategory').value = quiz.categoryId;
+                    
+                    // 選択肢を設定
+                    const container = document.getElementById('choicesContainer');
+                    container.innerHTML = '';
+                    
+                    quiz.choices.forEach(choice => {
+                        addChoice(choice.text, choice.isCorrect);
+                    });
+                } else {
+                    alert('クイズの取得に失敗しました');
+                }
+            } catch (error) {
+                console.error('クイズ取得エラー:', error);
+                alert('クイズの取得に失敗しました');
+            }
+        }
+
+        // クイズ編集
+        function editQuiz(quizId) {
+            showQuizModal(quizId);
+        }
+
+        // クイズ削除
+        async function deleteQuiz(quizId) {
+            if (!confirm('このクイズを削除しますか？')) return;
+            
+            try {
+                const response = await fetch(`/api/admin/quizzes/${quizId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (response.ok) {
+                    loadQuizzes();
+                } else {
+                    alert('クイズの削除に失敗しました');
+                }
+            } catch (error) {
+                console.error('クイズ削除エラー:', error);
+                alert('クイズの削除に失敗しました');
+            }
+        }
+
+        // クイズフォーム送信
+        async function handleQuizSubmit(e) {
+            e.preventDefault();
+            
+            const question = document.getElementById('quizQuestion').value;
+            const explanation = document.getElementById('quizExplanation').value;
+            const categoryId = parseInt(document.getElementById('quizCategory').value);
+            
+            // 選択肢を収集
+            const choiceInputs = document.querySelectorAll('.choice-input');
+            const choices = [];
+            
+            choiceInputs.forEach(choiceInput => {
+                const text = choiceInput.querySelector('input[type="text"]').value;
+                const isCorrect = choiceInput.querySelector('input[type="checkbox"]').checked;
+                
+                if (text.trim()) {
+                    choices.push({ text, isCorrect });
+                }
+            });
+            
+            if (choices.length < 2) {
+                alert('少なくとも2つの選択肢を入力してください');
+                return;
+            }
+            
+            if (!choices.some(choice => choice.isCorrect)) {
+                alert('少なくとも1つの正解を選択してください');
+                return;
+            }
+            
+            const quizData = {
+                question,
+                explanation,
+                categoryId,
+                choices
+            };
+            
+            const url = currentEditingQuizId 
+                ? `/api/admin/quizzes/${currentEditingQuizId}`
+                : '/api/admin/quizzes';
+            const method = currentEditingQuizId ? 'PUT' : 'POST';
+            
+            try {
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    },
+                    body: JSON.stringify(quizData)
+                });
+                
+                if (response.ok) {
+                    closeQuizModal();
+                    loadQuizzes();
+                } else {
+                    alert('クイズの保存に失敗しました');
+                }
+            } catch (error) {
+                console.error('クイズ保存エラー:', error);
+                alert('クイズの保存に失敗しました');
+            }
+        }
+    </script>
+</body>
+</html>

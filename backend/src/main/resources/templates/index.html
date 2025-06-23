@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クイズアプリ</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .category-selection {
+            margin-bottom: 30px;
+        }
+        .category-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .category-button {
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .category-button:hover {
+            background-color: #0056b3;
+        }
+        .quiz-container {
+            display: none;
+        }
+        .question {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .choices {
+            margin-bottom: 20px;
+        }
+        .choice {
+            display: block;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .choice:hover {
+            background-color: #e9ecef;
+        }
+        .choice.selected {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        .choice input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .submit-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        .submit-button:hover {
+            background-color: #218838;
+        }
+        .submit-button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .result.correct {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .result.incorrect {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .explanation {
+            margin-top: 10px;
+            font-style: italic;
+        }
+        .next-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 15px;
+        }
+        .next-button:hover {
+            background-color: #0056b3;
+        }
+        .final-result {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+        .score {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+        .back-button {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+        .admin-link {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #007bff;
+            text-decoration: none;
+        }
+        .admin-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <a href="/admin" class="admin-link">管理者ページ</a>
+    
+    <div class="container">
+        <h1>クイズアプリ</h1>
+        
+        <!-- カテゴリー選択画面 -->
+        <div id="categorySelection" class="category-selection">
+            <h2>カテゴリーを選択してください</h2>
+            <div id="categoryList" class="category-list">
+                <!-- カテゴリーボタンがここに動的に追加されます -->
+            </div>
+        </div>
+        
+        <!-- クイズ画面 -->
+        <div id="quizContainer" class="quiz-container">
+            <div id="question" class="question"></div>
+            <div id="choices" class="choices"></div>
+            <button id="submitAnswer" class="submit-button" onclick="submitAnswer()">回答する</button>
+            <button id="nextQuestion" class="next-button" onclick="nextQuestion()" style="display: none;">次の問題</button>
+            
+            <div id="result" class="result">
+                <div id="resultText"></div>
+                <div id="explanation" class="explanation"></div>
+            </div>
+        </div>
+        
+        <!-- 最終結果画面 -->
+        <div id="finalResult" class="final-result">
+            <h2>全問回答しました、お疲れ様です！</h2>
+            <div id="score" class="score"></div>
+            <button class="back-button" onclick="backToCategories()">カテゴリー選択に戻る</button>
+        </div>
+    </div>
+
+    <script>
+        let currentQuiz = null;
+        let selectedCategory = null;
+        let selectedChoices = [];
+
+        // ページ読み込み時にカテゴリーを取得
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCategories();
+        });
+
+        // カテゴリー一覧を取得
+        async function loadCategories() {
+            try {
+                const response = await fetch('/api/categories');
+                const categories = await response.json();
+                
+                const categoryList = document.getElementById('categoryList');
+                categoryList.innerHTML = '';
+                
+                categories.forEach(category => {
+                    const button = document.createElement('button');
+                    button.className = 'category-button';
+                    button.textContent = category.name;
+                    button.onclick = () => selectCategory(category.id, category.name);
+                    categoryList.appendChild(button);
+                });
+            } catch (error) {
+                console.error('カテゴリーの取得に失敗しました:', error);
+            }
+        }
+
+        // カテゴリーを選択
+        async function selectCategory(categoryId, categoryName) {
+            selectedCategory = { id: categoryId, name: categoryName };
+            document.getElementById('categorySelection').style.display = 'none';
+            document.getElementById('quizContainer').style.display = 'block';
+            
+            await loadNextQuiz();
+        }
+
+        // 次のクイズを取得
+        async function loadNextQuiz() {
+            try {
+                const response = await fetch(`/api/quizzes?category=${selectedCategory.id}`);
+                
+                if (response.status === 204) {
+                    // 全問回答済み、結果を表示
+                    showFinalResult();
+                    return;
+                }
+                
+                currentQuiz = await response.json();
+                displayQuiz();
+            } catch (error) {
+                console.error('クイズの取得に失敗しました:', error);
+            }
+        }
+
+        // クイズを表示
+        function displayQuiz() {
+            document.getElementById('question').textContent = currentQuiz.question;
+            
+            const choicesContainer = document.getElementById('choices');
+            choicesContainer.innerHTML = '';
+            selectedChoices = [];
+            
+            currentQuiz.choices.forEach(choice => {
+                const label = document.createElement('label');
+                label.className = 'choice';
+                
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = choice.id;
+                checkbox.onchange = () => toggleChoice(choice.id, label);
+                
+                label.appendChild(checkbox);
+                label.appendChild(document.createTextNode(choice.text));
+                choicesContainer.appendChild(label);
+            });
+            
+            document.getElementById('submitAnswer').style.display = 'inline-block';
+            document.getElementById('nextQuestion').style.display = 'none';
+            document.getElementById('result').style.display = 'none';
+        }
+
+        // 選択肢の切り替え
+        function toggleChoice(choiceId, label) {
+            const index = selectedChoices.indexOf(choiceId);
+            if (index > -1) {
+                selectedChoices.splice(index, 1);
+                label.classList.remove('selected');
+            } else {
+                selectedChoices.push(choiceId);
+                label.classList.add('selected');
+            }
+        }
+
+        // 回答を送信
+        async function submitAnswer() {
+            if (selectedChoices.length === 0) {
+                alert('選択肢を選んでください');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/quizzes/${currentQuiz.id}/answer`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        selectedChoiceIds: selectedChoices
+                    })
+                });
+                
+                const result = await response.json();
+                showResult(result);
+            } catch (error) {
+                console.error('回答の送信に失敗しました:', error);
+            }
+        }
+
+        // 結果を表示
+        function showResult(result) {
+            const resultDiv = document.getElementById('result');
+            const resultText = document.getElementById('resultText');
+            const explanation = document.getElementById('explanation');
+            
+            if (result.isCorrect) {
+                resultDiv.className = 'result correct';
+                resultText.textContent = '正解！';
+            } else {
+                resultDiv.className = 'result incorrect';
+                resultText.textContent = '不正解';
+            }
+            
+            explanation.textContent = result.explanation || '';
+            
+            resultDiv.style.display = 'block';
+            document.getElementById('submitAnswer').style.display = 'none';
+            document.getElementById('nextQuestion').style.display = 'inline-block';
+        }
+
+        // 次の問題へ
+        function nextQuestion() {
+            loadNextQuiz();
+        }
+
+        // 最終結果を表示
+        async function showFinalResult() {
+            try {
+                const response = await fetch(`/api/result?category=${selectedCategory.id}`);
+                const result = await response.json();
+                
+                document.getElementById('quizContainer').style.display = 'none';
+                document.getElementById('finalResult').style.display = 'block';
+                
+                const scoreText = `${result.correctAnswers}/${result.totalQuestions}問正解 (${result.scorePercentage.toFixed(1)}%)`;
+                document.getElementById('score').textContent = scoreText;
+            } catch (error) {
+                console.error('結果の取得に失敗しました:', error);
+            }
+        }
+
+        // カテゴリー選択に戻る
+        function backToCategories() {
+            document.getElementById('finalResult').style.display = 'none';
+            document.getElementById('categorySelection').style.display = 'block';
+            selectedCategory = null;
+            currentQuiz = null;
+        }
+    </script>
+</body>
+</html>
