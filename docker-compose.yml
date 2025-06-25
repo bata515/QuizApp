@@ -9,7 +9,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - db-data:/var/lib/postgresql/data  # データ永続化
+      - db-data:/var/lib/postgresql/data  # コンテナ内の /var/lib/postgresql/data に、postgres_data という名前のDockerボリュームをマウント
     ports:
       - "5432:5432"  # ローカル→コンテナのポートマッピング
 
@@ -26,4 +26,4 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
 
 volumes:
-  db-data:  # 名前付きボリュームでDBデータを永続化
+  db-data:  # ボリュームを定義し、DBデータを永続化。コンテナを消してもデータが残る。
