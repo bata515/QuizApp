@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お客様情報ページ</title>
+    <link rel="stylesheet" href="customer-info.css">
+</head>
+<body>
+<div class="container">
+    <h1>お客様情報</h1>
+
+    <!-- 顧客情報フォーム -->
+    <div class="section">
+        <h2>基本情報</h2>
+        <form id="customer-info-form">
+            <label for="name">名前</label>
+            <input type="text" id="name" name="name" value="" readonly>
+
+            <label for="address">住所</label>
+            <input type="text" id="address" name="address" value="東京都新宿区123-456" readonly>
+
+            <label for="mail">メールアドレス</label>
+            <input type="email" id="mail" name="mail" value="" readonly>
+        </form>
+    </div>
+
+    <div class="section">
+        <h2>お支払方法</h2>
+        <form id="payment-method-form">
+            <label for="payment-method">お支払方法</label>
+            <select id="payment-method" name="payment-method" disabled>
+                <option value="credit-card">クレジットカード</option>
+                <option value="bank-transfer">銀行振込</option>
+                <option value="paypal">PayPal</option>
+            </select>
+        </form>
+    </div>
+
+    <div class="section">
+        <h2>購入履歴</h2>
+        <table id="purchase-history">
+            <thead>
+            <tr>
+                <th>日付</th>
+                <th>商品名</th>
+                <th>価格</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>2024/05/01</td>
+                <td>商品A</td>
+                <td>¥1,000</td>
+            </tr>
+            <tr>
+                <td>2024/05/15</td>
+                <td>商品B</td>
+                <td>¥2,000</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- JavaScriptの追加 -->
+<script>
+        // URLパスから顧客IDを取得する関数
+        function getCustomerIdFromUrlQuery() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');  // URLクエリパラメータから顧客IDを取得
+}
+
+        // 顧客情報をAPIから取得し、フォームに表示する
+        function fetchCustomerInfo(customerId) {
+            if (!customerId) {
+                alert('顧客IDが指定されていません');
+                return;
+            }
+
+            // サーバーサイドのエンドポイントにリクエストを送る
+            fetch(`/users/read/${customerId}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('ネットワークエラー');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // familyNameとfirstNameを結合してnameに表示
+                    document.getElementById('name').value = `${data.familyName} ${data.firstName}`;
+                    // mailを表示
+                    document.getElementById('mail').value = data.mail;
+                })
+                .catch(error => {
+                    console.error('エラー:', error);
+                    alert('顧客情報の取得に失敗しました');
+                });
+        }
+
+        // ページ読み込み時に実行
+        window.onload = function() {
+            const customerId = getCustomerIdFromUrlQuery();
+            fetchCustomerInfo(customerId);
+        };
+    </script>
+</body>
+</html>
