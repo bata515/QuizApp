@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>User Registration</title>
+  <script>
+    async function submitForm(event) {
+      event.preventDefault(); // フォームのデフォルト送信動作をキャンセル
+
+      const formData = {
+        familyName: document.getElementById("familyName").value,
+        familyNameRuby: document.getElementById("familyNameRuby").value,
+        firstName: document.getElementById("firstName").value,
+        firstNameRuby: document.getElementById("firstNameRuby").value,
+        mail: document.getElementById("mail").value,
+        password: document.getElementById("password").value
+      };
+
+      try {
+        const response = await fetch('/users/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          alert("User registered successfully");
+        } else {
+          const error = await response.json();
+          alert(`Error: ${error.message || response.statusText}`);
+        }
+      } catch (error) {
+        console.error("Error occurred:", error);
+        alert("Failed to register user. Please try again later.");
+      }
+    }
+  </script>
+</head>
+<body>
+<h2>User Registration</h2>
+<form onsubmit="submitForm(event)">
+  <div>
+    <label for="familyName">Family Name:</label>
+    <input type="text" id="familyName" name="familyName" required>
+  </div>
+  <div>
+    <label for="familyNameRuby">Family Name Ruby:</label>
+    <input type="text" id="familyNameRuby" name="familyNameRuby">
+  </div>
+  <div>
+    <label for="firstName">First Name:</label>
+    <input type="text" id="firstName" name="firstName" required>
+  </div>
+  <div>
+    <label for="firstNameRuby">First Name Ruby:</label>
+    <input type="text" id="firstNameRuby" name="firstNameRuby">
+  </div>
+  <div>
+    <label for="mail">Email:</label>
+    <input type="email" id="mail" name="mail" required>
+  </div>
+  <div>
+    <label for="password">Password:</label>
+    <input type="password" id="password" name="password" required>
+  </div>
+  <button type="submit">Register</button>
+</form>
+</body>
+</html>
